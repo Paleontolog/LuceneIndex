@@ -22,6 +22,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.QueryBuilder;
 
+import preparation.Lemmatizer;
 import preparation.Parser;
 import preparation.SynonymAnalizer;
 import preparation.SynonymsPreparation;
@@ -43,6 +44,8 @@ public class IndexCreator {
     private Parser parser = new Parser();
 
     private SynonymMap synonymMap =  new SynonymsPreparation().getSynonyms("data/synonums_fast.json");
+
+    private Lemmatizer lemmatizer = new Lemmatizer();
 
     private Document bookToDocument1(Book book) {
         Document document = new Document();
@@ -145,6 +148,7 @@ public class IndexCreator {
             IndexReader indexReader = DirectoryReader.open(directory);
             IndexSearcher indexSearcher = new IndexSearcher(indexReader);
 
+            text = lemmatizer.getLemmatization(text);
             Query query = new QueryParser(field, new SynonymAnalizer(synonymMap)).parse(text);
 
 //            SpanQuery[] clauses = new SpanQuery[text.split(" ").length];
@@ -152,7 +156,6 @@ public class IndexCreator {
 //            clauses[1] = new SpanMultiTermQueryWrapper(new FuzzyQuery(new Term("contents", "employee")));
 //            clauses[2] = new SpanMultiTermQueryWrapper(new FuzzyQuery(new Term("contents", "appreicata")));
 //            SpanNearQuery query = new SpanNearQuery(clauses, 0, true);
-
 
             System.out.println("Search... '" + query + "'");
             TopDocs topDocs = indexSearcher.search(query, 100);
