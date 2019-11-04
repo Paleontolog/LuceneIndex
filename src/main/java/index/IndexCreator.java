@@ -3,25 +3,15 @@ package index;
 import documents.Book;
 import documents.Book2;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.Tokenizer;
-import org.apache.lucene.analysis.core.FlattenGraphFilter;
+import org.apache.lucene.analysis.ru.RussianAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.analysis.standard.StandardTokenizer;
-import org.apache.lucene.analysis.synonym.SynonymGraphFilter;
 import org.apache.lucene.analysis.synonym.SynonymMap;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
-import org.apache.lucene.search.spans.SpanBoostQuery;
-import org.apache.lucene.search.spans.SpanMultiTermQueryWrapper;
-import org.apache.lucene.search.spans.SpanNearQuery;
-import org.apache.lucene.search.spans.SpanQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.QueryBuilder;
-
 import preparation.Lemmatizer;
 import preparation.Parser;
 import preparation.SynonymAnalizer;
@@ -121,7 +111,8 @@ public class IndexCreator {
     public boolean createIndex(String filePath) {
         try {
             Directory directory = FSDirectory.open(Paths.get(filePath));
-            Analyzer analyzer = new StandardAnalyzer();
+            //Analyzer analyzer = new StandardAnalyzer();
+            Analyzer analyzer = new RussianAnalyzer();
             IndexWriterConfig config = new IndexWriterConfig(analyzer);
             config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
             indexWriter = new IndexWriter(directory, config);
@@ -150,13 +141,6 @@ public class IndexCreator {
 
             text = lemmatizer.getLemmatization(text);
             Query query = new QueryParser(field, new SynonymAnalizer(synonymMap)).parse(text);
-
-//            SpanQuery[] clauses = new SpanQuery[text.split(" ").length];
-//            clauses[0] = new SpanMultiTermQueryWrapper(new FuzzyQuery(new Term("contents", "mosa")));
-//            clauses[1] = new SpanMultiTermQueryWrapper(new FuzzyQuery(new Term("contents", "employee")));
-//            clauses[2] = new SpanMultiTermQueryWrapper(new FuzzyQuery(new Term("contents", "appreicata")));
-//            SpanNearQuery query = new SpanNearQuery(clauses, 0, true);
-
             System.out.println("Search... '" + query + "'");
             TopDocs topDocs = indexSearcher.search(query, 100);
             System.out.println(topDocs.totalHits);
@@ -182,7 +166,7 @@ public class IndexCreator {
 
             Analyzer analyzer = new StandardAnalyzer();
 
-            Query q = new QueryParser( field, analyzer).parse(text.replace(" ", " AND "));
+            Query q = new QueryParser( field, analyzer).parse(text.replace(" ", " OR "));
 
             TopDocs topDocs = indexSearcher.search(q, 10);
             for (ScoreDoc sd : topDocs.scoreDocs) {
@@ -197,7 +181,6 @@ public class IndexCreator {
             e.printStackTrace();
         }
     }
-
 
     public void search(String filePath, Long ...other) {
         Directory directory = null;

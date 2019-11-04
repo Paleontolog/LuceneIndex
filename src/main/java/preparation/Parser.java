@@ -47,5 +47,6 @@ public class Parser {
     public static void main(String[] args) {
         Parser parser = new Parser();
         parser.parse1("data/scraped_data_utf8_2.json");
+        Standart
     }
 }
